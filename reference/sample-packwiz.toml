@@ -1,0 +1,19 @@
+# Sample packwiz.toml for a Minecraft modpack
+# Replace the values below with your actual configuration
+
+mod-provider = "curseforge"  # Options: curseforge, modrinth, url, github, gitlab
+
+# Remote repository URL for hosting your pack config (optional)
+remote-repo = "https://github.com/yourusername/your-packwiz-repo.git"
+
+# --- CurseForge Configuration ---
+[curseforge]
+project-id = 0  # Replace with your CurseForge project ID
+
+# --- Modrinth Configuration (uncomment if using Modrinth instead) ---
+# mod-provider = "modrinth"
+# [modrinth]
+# project-id = ""  # Replace with your Modrinth project ID
+
+# --- URL Configuration (uncomment for direct links) ---
+# mod-provider = "url"
