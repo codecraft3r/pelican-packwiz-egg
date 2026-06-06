@@ -1,97 +1,113 @@
 {
-  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
-  "meta": {
-    "version": "PTDL_v2",
-    "update_url": null
-  },
-  "exported_at": "2026-06-06T13:10:00+00:00",
-  "name": "Minecraft (Packwiz)",
-  "author": "codecraft",
-  "description": "A Minecraft server using packwiz for git-based modpack management. Automatically installs and updates mods from your packwiz configuration.",
-  "features": [
-    "java_version",
-    "eula"
-  ],
-  "docker_images": {
-    "ghcr.io/pterodactyl/mc-java:java21": "ghcr.io/pterodactyl/mc-java:java21",
-    "ghcr.io/pterodactyl/mc-java:java17": "ghcr.io/pterodactyl/mc-java:java17",
-    "ghcr.io/pterodactyl/mc-java:java8": "ghcr.io/pterodactyl/mc-java:java8"
-  },
-  "file_denylist": [],
-  "startup": "echo \"[Packwiz] Running packwiz update before server start...\" && packwiz update || echo \"[Packwiz] WARNING: update failed, continuing anyway...\" && echo \"[Server] Starting Minecraft server on port {{SERVER_PORT}}...\" && java -Xms{{STARTER_MEM}}m -Xmx{{MAX_MEM}}m {{JAVA_OPTS}} -jar server.jar",
-  "config": {
-    "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-port\": \"{{server.allocations.default.port}}\",\r\n            \"enable-query\": \"true\",\r\n            \"query.port\": \"{{server.allocations.default.port}}\"\r\n        }\r\n    }\r\n}",
-    "startup": "{\r\n    \"done\": \"[ 100%]\"\r\n}",
-    "logs": "{}",
-    "stop": "stop"
-  },
-  "scripts": {
-    "installation": {
-      "script": "#!/bin/bash\nset -e\n\necho \"========================================\"\necho \"   Packwiz Minecraft Server Setup\"\necho \"========================================\"\n\nif ! command -v packwiz &> /dev/null; then\n  echo \"[1/3] Installing packwiz...\"\n  ARCH=$(uname -m)\n  case $ARCH in\n    x86_64) ARCH=\"amd64\" ;;\n    aarch64|arm64) ARCH=\"arm64\" ;;\n    *) echo \"ERROR: Unsupported architecture: $ARCH\"; exit 1 ;;\n  esac\n\n  PACKWIZ_VERSION=\"1.3.2\"\n  echo \"  Downloading packwiz v${PACKWIZ_VERSION} for ${ARCH}...\"\n  curl -sL \"https://github.com/packwiz/packwiz/releases/download/v${PACKWIZ_VERSION}/packwiz_${PACKWIZ_VERSION}_linux_${ARCH}.tar.gz\" -o /tmp/packwiz.tar.gz\n  tar -xzf /tmp/packwiz.tar.gz -C /usr/local/bin/\n  chmod +x /usr/local/bin/packwiz\n  rm -f /tmp/packwiz.tar.gz\n  echo \"  packwiz v${PACKWIZ_VERSION} installed successfully.\"\nelse\n  echo \"[1/3] packwiz already installed: $(packwiz --version)\"\nfi\n\nif [ -n \"${PACKWIZ_REPO}\" ]; then\n  echo \"[2/3] Cloning packwiz repository...\"\n  BRANCH=\"${PACKWIZ_BRANCH:-main}\"\n  git clone --branch \"$BRANCH\" --single-branch \"$PACKWIZ_REPO\" /tmp/packwiz-repo 2>/dev/null\n  if [ $? -eq 0 ]; then\n    cp /tmp/packwiz-repo/* /tmp/packwiz-repo/.gitignore . 2>/dev/null || true\n    cp -r /tmp/packwiz-repo/mods . 2>/dev/null || true\n    cp -r /tmp/packwiz-repo/config . 2>/dev/null || true\n    cp -r /tmp/packwiz-repo/assets . 2>/dev/null || true\n    rm -rf /tmp/packwiz-repo\n    echo \"  Repository cloned successfully.\"\n  else\n    echo \"  WARNING: Failed to clone repository. Using existing files.\"\n  fi\nfi\n\nif [ -f \"packwiz.toml\" ]; then\n  echo \"[3/3] Running packwiz install to download modpack files...\"\n  if packwiz install; then\n    echo \"  packwiz install completed successfully.\"\n  else\n    echo \"  ERROR: packwiz install failed!\"\n    echo \"  Check your packwiz.toml configuration and internet connection.\"\n    exit 1\n  fi\nelse\n  echo \"[3/3] No packwiz.toml found.\"\n  echo \"  Please upload your packwiz configuration files via the file manager.\"\n  echo \"  Expected: packwiz.toml, mods/, config/ (optional)\"\nfi\n\necho \"========================================\"\necho \"  Setup Complete!\"\necho \"========================================\"",
-      "container": "ghcr.io/parkervcp/yolks:debian",
-      "entrypoint": "bash"
-    }
-  },
-  "variables": [
-    {
-      "name": "Server Port",
-      "description": "Port for players to connect to the server.",
-      "env_variable": "SERVER_PORT",
-      "default_value": "25565",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|numeric|digits_between:4,5",
-      "field_type": "text"
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PANEL",
+    "meta": {
+        "version": "PLCN_v3",
+        "update_url": null
     },
-    {
-      "name": "Initial Memory (MB)",
-      "description": "Starting heap size for the JVM.",
-      "env_variable": "STARTER_MEM",
-      "default_value": "1024",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|numeric|digits_between:3,5",
-      "field_type": "text"
+    "exported_at": "2026-06-06T21:30:45+00:00",
+    "name": "Minecraft (Packwiz Bootstrap)",
+    "author": "codecraft@example.com",
+    "uuid": "43ec793d-04cf-4720-8b12-d1eb1fc8c0a9",
+    "description": "A Minecraft server utilizing packwiz-installer-bootstrap to automatically fetch, pull, and update server-side mods from a remote pack.toml repository before startup.",
+    "icon": null,
+    "tags": [],
+    "features": [
+        "java_version",
+        "eula"
+    ],
+    "docker_images": {
+        "Java 21": "ghcr.io/pelican-eggs/yolks:java_21",
+        "Java 17": "ghcr.io/pelican-eggs/yolks:java_17",
+        "Java 8": "ghcr.io/pelican-eggs/yolks:java_8"
     },
-    {
-      "name": "Max Memory (MB)",
-      "description": "Maximum heap size for the JVM.",
-      "env_variable": "MAX_MEM",
-      "default_value": "4096",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "required|numeric|digits_between:3,5",
-      "field_type": "text"
+    "file_denylist": [],
+    "startup_commands": {
+        "Default": "bash start.sh {{JVM_ARGS}}"
     },
-    {
-      "name": "Java Options",
-      "description": "Extra JVM arguments (GC flags, performance tweaks).",
-      "env_variable": "JAVA_OPTS",
-      "default_value": "-XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "nullable|string|max:500",
-      "field_type": "text"
+    "config": {
+        "files": "{\n    \"server.properties\": {\n        \"parser\": \"properties\",\n        \"find\": {\n            \"server-port\": \"{{server.allocations.default.port}}\",\n            \"enable-query\": \"true\",\n            \"query.port\": \"{{server.allocations.default.port}}\"\n        }\n    }\n}",
+        "startup": "{\n    \"done\": \"[ 100%]\"\n}",
+        "logs": "{}",
+        "stop": "stop"
     },
-    {
-      "name": "Packwiz Repo URL",
-      "description": "Git repository with packwiz.toml and mods/. Auto-cloned during setup.",
-      "env_variable": "PACKWIZ_REPO",
-      "default_value": "",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "nullable|string|max:500",
-      "field_type": "text"
+    "scripts": {
+        "installation": {
+            "script": "#!/usr/bin/env bash\nset -Eeuo pipefail\n\n########################################\n# Constants\n########################################\n\nreadonly MCIH_VERSION=\"1.60.1\"\nreadonly MCIH_URL=\"https://github.com/itzg/mc-image-helper/releases/download/${MCIH_VERSION}/mc-image-helper-${MCIH_VERSION}.tgz\"\nreadonly MCIH_SHA256=\"d1fa4526439a498a006d781d0e4ef56da37304a8bd3df6c3d0e4345916724577\"\n\n########################################\n# Helpers\n########################################\n\nlog() {\n    echo \"[Packwiz] $*\"\n}\n\nfatal() {\n    echo \"[Packwiz] ERROR: $*\" >&2\n    exit 1\n}\n\ncleanup() {\n    [[ -n \"${TMP_DIR:-}\" ]] && rm -rf \"$TMP_DIR\"\n}\n\ntrap cleanup EXIT\n\nTMP_DIR=\"$(mktemp -d)\"\n\n########################################\n# Dependencies\n########################################\n\nexport DEBIAN_FRONTEND=noninteractive\n\nlog \"Installing dependencies...\"\n\napt-get update -qq\n\napt-get install -y -qq \\\n    ca-certificates \\\n    curl \\\n    jq \\\n    python3 \\\n    tar\n\n########################################\n# Install mc-image-helper 1.60.1\n########################################\n\nif ! command -v mc-image-helper >/dev/null 2>&1; then\n    log \"Installing mc-image-helper ${MCIH_VERSION}...\"\n\n    curl -fLsS \\\n        \"$MCIH_URL\" \\\n        -o \"${TMP_DIR}/mc-image-helper.tgz\"\n\n    log \"Verifying checksum...\"\n    echo \"${MCIH_SHA256}  ${TMP_DIR}/mc-image-helper.tgz\" | sha256sum -c - || \\\n        fatal \"mc-image-helper integrity check failed (SHA-256 mismatch)\"\n\n    mkdir -p /usr/local/bin/mc-image-helper-dist\n\n    tar -xzf \\\n        \"${TMP_DIR}/mc-image-helper.tgz\" \\\n        -C /usr/local/bin/mc-image-helper-dist \\\n        --strip-components=1\n\n    ln -sf \\\n        /usr/local/bin/mc-image-helper-dist/bin/mc-image-helper \\\n        /usr/local/bin/mc-image-helper\n\n    chmod +x /usr/local/bin/mc-image-helper\nfi\n\ncommand -v mc-image-helper >/dev/null 2>&1 || \\\n    fatal \"mc-image-helper installation failed\"\n\n########################################\n# Resolve pack.toml\n########################################\n\nif [[ -n \"${PACKWIZ_URL:-}\" ]]; then\n    log \"Downloading pack.toml...\"\n\n    PACK_FILE=\"${TMP_DIR}/pack.toml\"\n\n    curl -fLsS \\\n        \"$PACKWIZ_URL\" \\\n        -o \"$PACK_FILE\"\n\nelif [[ -f \"pack.toml\" ]]; then\n    PACK_FILE=\"pack.toml\"\n\nelse\n    fatal \"No pack.toml found and PACKWIZ_URL not set\"\nfi\n\n########################################\n# Parse pack.toml\n########################################\n\nJSON_DATA=\"$(\npython3 - \"$PACK_FILE\" <<'PY'\nimport json\nimport sys\n\ntry:\n    import tomllib\nexcept ImportError:\n    raise SystemExit(\"Python 3.11+ required\")\n\nwith open(sys.argv[1], \"rb\") as f:\n    print(json.dumps(tomllib.load(f)))\nPY\n)\"\n\nMC_VERSION=\"$(jq -r '.versions.minecraft // empty' <<< \"$JSON_DATA\")\"\nFABRIC_VERSION=\"$(jq -r '.versions.fabric // empty' <<< \"$JSON_DATA\")\"\nFORGE_VERSION=\"$(jq -r '.versions.forge // empty' <<< \"$JSON_DATA\")\"\nNEOFORGE_VERSION=\"$(jq -r '.versions.neoforge // empty' <<< \"$JSON_DATA\")\"\n\n[[ -n \"$MC_VERSION\" ]] || \\\n    fatal \"Minecraft version missing from pack.toml\"\n\nlog \"Minecraft: ${MC_VERSION}\"\n\n########################################\n# Install server\n########################################\n\nif [[ -n \"$FABRIC_VERSION\" ]]; then\n\n    log \"Loader: Fabric ${FABRIC_VERSION}\"\n\n    mc-image-helper install-fabric-loader \\\n        --version=\"$MC_VERSION\" \\\n        --loader-version=\"$FABRIC_VERSION\" \\\n        --output-directory=.\n\nelif [[ -n \"$NEOFORGE_VERSION\" ]]; then\n\n    log \"Loader: NeoForge ${NEOFORGE_VERSION}\"\n\n    mc-image-helper install-neoforge \\\n        --minecraft-version=\"$MC_VERSION\" \\\n        --neoforge-version=\"$NEOFORGE_VERSION\" \\\n        --output-directory=.\n\nelif [[ -n \"$FORGE_VERSION\" ]]; then\n\n    log \"Loader: Forge ${FORGE_VERSION}\"\n\n    mc-image-helper install-forge \\\n        --minecraft-version=\"$MC_VERSION\" \\\n        --forge-version=\"$FORGE_VERSION\" \\\n        --output-directory=.\n\nelse\n\n    fatal \"Unsupported pack type (no Fabric, Forge, or NeoForge version found)\"\n\nfi\n\nlog \"Setup completed successfully.\"\n",
+            "container": "eclipse-temurin:21-jdk-noble",
+            "entrypoint": "bash"
+        }
     },
-    {
-      "name": "Packwiz Repo Branch",
-      "description": "Branch to checkout from the packwiz repository.",
-      "env_variable": "PACKWIZ_BRANCH",
-      "default_value": "main",
-      "user_viewable": true,
-      "user_editable": true,
-      "rules": "nullable|string|max:100",
-      "field_type": "text"
-    }
-  ]
+    "variables": [
+        {
+            "sort": 5,
+            "name": "Java Options",
+            "description": "Extra JVM arguments (GC flags, performance tweaks).",
+            "env_variable": "JAVA_OPTS",
+            "default_value": "-XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "nullable",
+                "string",
+                "max:500"
+            ]
+        },
+        {
+            "sort": 4,
+            "name": "Max Memory (MB)",
+            "description": "Maximum heap size for the JVM.",
+            "env_variable": "MAX_MEM",
+            "default_value": "4096",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "numeric",
+                "digits_between:3,5"
+            ]
+        },
+        {
+            "sort": 1,
+            "name": "Packwiz pack.toml URL",
+            "description": "The absolute remote HTTP/HTTPS URL path pointing toward your hosted pack.toml configuration manifest.",
+            "env_variable": "PACKWIZ_URL",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "url",
+                "max:500"
+            ]
+        },
+        {
+            "sort": 2,
+            "name": "Server Jar File",
+            "description": "The executable server core filename (e.g. server.jar, fabric-server.jar, paper.jar).",
+            "env_variable": "SERVER_JARFILE",
+            "default_value": "server.jar",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "max:100"
+            ]
+        },
+        {
+            "sort": 3,
+            "name": "Initial Memory (MB)",
+            "description": "Starting heap size for the JVM.",
+            "env_variable": "STARTER_MEM",
+            "default_value": "1024",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "numeric",
+                "digits_between:3,5"
+            ]
+        }
+    ]
 }
